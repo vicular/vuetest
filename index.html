@@ -1,78 +1,166 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-        <meta name="viewport" content="initial-scale=1, maximum-scale=3, minimum-scale=1, user-scalable=no">
-        <meta name="apple-mobile-web-app-title" content="vuetest">
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="format-detection" content="telphone=no, email=no" />
-        <meta name="renderer" content="webkit">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="HandheldFriendly" content="true">
-        <meta name="MobileOptimized" content="320">
-        <meta name="screen-orientation" content="portrait">
-        <meta name="x5-orientation" content="portrait">
-        <meta name="full-screen" content="yes">
-        <meta name="x5-fullscreen" content="true">
-        <meta name="browsermode" content="application">
-        <meta name="x5-page-mode" content="app">
-        <meta name="msapplication-tap-highlight" content="no">
-        <link rel="shortcut icon" type="image/ico" href="favicon.ico" />
-        <title>vuetest</title>
-        <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
-        <script src="https://cdn.jsdelivr.net/npm/axios@0.19.0/dist/axios.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.15/lodash.min.js"></script>
-        <script src="https://browser.sentry-cdn.com/5.10.2/bundle.min.js" integrity="sha384-ssBfXiBvlVC7bdA/VX03S88B5MwXQWdnpJRbUYFPgswlOBwETwTp6F3SMUNpo9M9"
-            crossorigin="anonymous"></script>
-    </head>
-    <body>
-        <script>
-            Sentry.init({
-                dsn: 'https://698151d5e7bf4b10b7d49bbe92b3882a@o328241.ingest.sentry.io/6601320'
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=3, minimum-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-title" content="vuetest">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="format-detection" content="telphone=no, email=no"/>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="true">
+    <meta name="MobileOptimized" content="320">
+    <meta name="screen-orientation" content="portrait">
+    <meta name="x5-orientation" content="portrait">
+    <meta name="full-screen" content="yes">
+    <meta name="x5-fullscreen" content="true">
+    <meta name="browsermode" content="application">
+    <meta name="x5-page-mode" content="app">
+    <meta name="msapplication-tap-highlight" content="no">
+    <link rel="shortcut icon" type="image/ico" href="favicon.ico"/>
+    <link rel="stylesheet" href="vant/lib/index.css" />
+    <title>vuetest</title>
+    <script type="importmap">
+        {
+          "imports": {
+            "sensors": "./sensorsdata.es6.js",
+            "vue": "./vue.esm-browser.min.js",
+            "vant": "./vant/es/index.mjs",
+            "vant/": "./vant/",
+            "@vant/use": "./@vant/use/dist/index.esm.mjs",
+            "@vant/popperjs": "./@vant/popperjs/dist/index.esm.mjs"
+          }
+        }
+    </script>
+    <script type="module">
+        import sensors from 'sensors';
+
+        sensors.init({
+            server_url: 'https://tongji.yongxingsec.com:10443/sa?project=default ',
+            app_js_bridge: true,
+            is_track_single_page: true,
+            use_client_time: true,
+            send_type: 'beacon',
+            heatmap: {
+                //是否开启点击图，default 表示开启，自动采集 $WebClick 事件，可以设置 'not_collect' 表示关闭。
+                clickmap: 'default',
+                //是否开启触达图，not_collect 表示关闭，不会自动采集 $WebStay 事件，可以设置 'default' 表示开启。
+                scroll_notice_map: 'not_collect'
+            },
+            show_log: true,
+        });
+        // 注册公共属性
+        sensors.registerPage({
+            pj_name: '智能条件单'
+        });
+        sensors.loginWithKey('$identity_login_id', '880005775');
+        sensors.quick('autoTrack');
+    </script>
+    <script src="axios.min.js"></script>
+    <script src="lodash.min.js"></script>
+    <script src="sentry.min.js" crossorigin="anonymous"></script>
+    <!--    <script src="https://cdn.jsdelivr.net/npm/@sentry/vue@7.80.1/cjs/index.min.js"></script>-->
+    <link rel="stylesheet" href="docsify@4.vue.css">
+    <script>
+        Sentry.init({
+            dsn: 'https://698151d5e7bf4b10b7d49bbe92b3882a@o328241.ingest.sentry.io/6601320',
+            /*replaysSessionSampleRate: 0.1,
+            replaysOnErrorSampleRate: 1.0,
+            integrations: [
+                new Sentry.Replay({
+                    maskAllText: true,
+                    blockAllMedia: true,
+                }),
+            ],*/
+            debug: false,
+        });
+    </script>
+    <script src="appwrite@13.0.0.js"></script>
+    <script>
+        const {Client, Storage, ID} = Appwrite;
+        const client = new Client();
+
+        client
+            .setEndpoint('https://cloud.appwrite.io/v1')
+            .setProject('65556f4e61e03ba49608');
+        const storage = new Storage(client);
+
+        function uploadFile() {
+            const promise = storage.createFile(
+                '6555722201b5976e960e',
+                ID.unique(),
+                document.getElementById('uploader').files[0]
+            );
+
+            promise.then(function (response) {
+                console.log(response); // Success
+            }, function (error) {
+                console.log(error); // Failure
             });
-        </script>
-        <div id="watch-example">
-            <p>
-                Ask a yes/no question:
-                <input v-model="question">
-            </p>
-            <p>{{ answer }}</p>
-        </div>
-        <script>
-            var watchExampleVM = new Vue({
-                el: '#watch-example',
-                data: {
-                    question: '',
-                    answer: 'I cannot give you an answer until you ask a question!'
-                },
-                watch: {
-                    question: function(newQuestion, oldQuestion) {
-                        this.answer = 'Waiting for you to stop typing...'
-                        this.debouncedGetAnswer()
-                    }
-                },
-                created: function() {
-                    this.debouncedGetAnswer = _.debounce(this.getAnswer, 500)
-                },
-                methods: {
-                    getAnswer: function() {
-                        if (this.question.indexOf('?') === -1) {
-                            this.answer = 'Questions usually contain a question mark. ;-)'
-                            return
-                        }
-                        this.answer = 'Thinking...'
-                        var vm = this
-                        axios.get('https://yesno.wtf/api')
-                            .then(function(response) {
-                                vm.answer = _.capitalize(response.data.answer)
-                            })
-                            .catch(function(error) {
-                                vm.answer = 'Error! Could not reach the API. ' + error
-                            })
-                    }
+        }
+
+        // setTimeout(uploadFile, 5000)
+    </script>
+</head>
+<body>
+<div id="app"></div>
+<input id="uploader" type="file"/>
+<div id="watch-example">
+    <p>
+        Ask a yes/no question:
+        <input v-model="question">
+    </p>
+    <p>{{ answer }}</p>
+    <van-button type="primary">Primary</van-button>
+</div>
+<script type="module">
+    import {createApp} from "vue";
+    import {Button} from "vant";
+
+    const app = createApp({
+        data() {
+            return {
+                question: '',
+                answer: 'I cannot give you an answer until you ask a question!'
+            }
+        },
+        watch: {
+            question: function (newQuestion, oldQuestion) {
+                this.answer = 'Waiting for you to stop typing...'
+                this.debouncedGetAnswer()
+            }
+        },
+        created: function () {
+            this.debouncedGetAnswer = _.debounce(this.getAnswer, 500)
+        },
+        methods: {
+            getAnswer: function () {
+                if (this.question.indexOf('?') === -1) {
+                    this.answer = 'Questions usually contain a question mark. ;-)'
+                    return
                 }
-            })
-        </script>
-    </body>
+                this.answer = 'Thinking...'
+                var vm = this
+                axios.get('https://yesno.wtf/api')
+                    .then(function (response) {
+                        vm.answer = _.capitalize(response.data.answer)
+                    })
+                    .catch(function (error) {
+                        vm.answer = 'Error! Could not reach the API. ' + error
+                    })
+            }
+        }
+    })
+    app.use(Button);
+    app.mount('#watch-example');
+</script>
+</body>
+<script src="docsify@4.js"></script>
+<script>
+    window.$docsify = {
+        name: '',
+        repo: ''
+    }
+</script>
 </html>
