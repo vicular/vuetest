@@ -19,7 +19,7 @@
     <meta name="x5-page-mode" content="app">
     <meta name="msapplication-tap-highlight" content="no">
     <link rel="shortcut icon" type="image/ico" href="favicon.ico"/>
-    <link rel="stylesheet" href="vant/lib/index.css" />
+    <link rel="stylesheet" href="vant/lib/index.css"/>
     <title>vuetest</title>
     <script type="importmap">
         {
@@ -29,31 +29,63 @@
             "vant": "./vant/es/index.mjs",
             "vant/": "./vant/",
             "@vant/use": "./@vant/use/dist/index.esm.mjs",
-            "@vant/popperjs": "./@vant/popperjs/dist/index.esm.mjs"
+            "@vant/popperjs": "./@vant/popperjs/dist/index.esm.mjs",
+            "sensors/info": "./sensorsInfo.js",
+            "sensors/pageleave": "./sensorsdata.pageleave.js",
+            "sensors/properties": "./sensorsdata.properties.js"
           }
         }
     </script>
     <script type="module">
         import sensors from 'sensors';
+        import sensorsInfo from "sensors/info";
+        import pluginPageLeave from 'sensors/pageleave';
+        import pluginProperties from 'sensors/properties';
+
+        sensors.use(pluginPageLeave, {
+            isCollectUrl: function (url) {
+                return sensorsInfo['web-stay'].some(item => url.indexOf(Object.keys(item)[0]) !== -1)
+            }
+        });
+        const registerPlugin = sensors.use(pluginProperties);
+        registerPlugin.hookRegister(function (eventInfo) {
+            const event = eventInfo.event;
+            const properties = eventInfo.properties;
+            // const data = eventInfo.data;
+            const url = properties.$url;
+            const customProperties = {}
+            if (event === '$WebPageLeave') {
+                return Object.values(sensorsInfo['web-stay'].find(item => url.indexOf(Object.keys(item)[0]) !== -1) || {})[0] || {};
+            }
+            return customProperties
+        })
 
         sensors.init({
-            server_url: 'https://tongji.yongxingsec.com:10443/sa?project=default ',
+            server_url: 'https://tongji.yongxingsec.com:10443/sa?project=default',
             app_js_bridge: true,
             is_track_single_page: true,
             use_client_time: true,
             send_type: 'beacon',
             heatmap: {
-                //是否开启点击图，default 表示开启，自动采集 $WebClick 事件，可以设置 'not_collect' 表示关闭。
                 clickmap: 'default',
-                //是否开启触达图，not_collect 表示关闭，不会自动采集 $WebStay 事件，可以设置 'default' 表示开启。
+                collect_element: function (element_target) {
+                    return element_target.getAttribute('sensors-enable') === 'true';
+                },
+                custom_property: function (element_target) {
+                    if (element_target.getAttribute('sensors-enable') === 'true') {
+                        const sInfo = sensorsInfo[element_target.getAttribute('sensors-key')] || {};
+                        if (sInfo.button_name === 'button_name') {
+                            sInfo.button_name = element_target.innerText;
+                        }
+                        return sInfo;
+                    }
+                },
                 scroll_notice_map: 'not_collect'
             },
             show_log: true,
         });
         // 注册公共属性
-        sensors.registerPage({
-            pj_name: '智能条件单'
-        });
+        sensors.registerPage(sensorsInfo.common);
         sensors.loginWithKey('$identity_login_id', '880005775');
         sensors.quick('autoTrack');
     </script>
@@ -112,17 +144,24 @@
         <input v-model="question">
     </p>
     <p>{{ answer }}</p>
-    <van-button type="primary">Primary</van-button>
+    <van-button type="primary" sensors-enable="true" sensors-key="1-18-1">TEST_BUTTON</van-button>
+    <van-button type="primary" sensors-key="1-14-1-2" @click="manual">TEST_BUTTON_MANUAL</van-button>
 </div>
 <script type="module">
     import {createApp} from "vue";
     import {Button} from "vant";
+    import sensors from 'sensors';
+    import sensorsInfo from "sensors/info";
 
     const app = createApp({
         data() {
             return {
                 question: '',
-                answer: 'I cannot give you an answer until you ask a question!'
+                answer: 'I cannot give you an answer until you ask a question!',
+                sensorsData: {
+                    a: 1,
+                    b: 2
+                }
             }
         },
         watch: {
@@ -149,6 +188,18 @@
                     .catch(function (error) {
                         vm.answer = 'Error! Could not reach the API. ' + error
                     })
+            },
+            manual(event) {
+                const sensorsKey = event.target.getAttribute('sensors-key');
+                const sensorsData = sensorsInfo[sensorsKey] || {};
+                if (sensorsData.button_name === 'button_name') {
+                    sensorsData.button_name = event.target.innerText;
+                }
+                if (sensorsData.request_param === 'request_param') {
+                    sensorsData['request_param'] = this.sensorsData;
+                }
+                sensors.track('$WebClick', sensorsData);
+                // sensors.quick('trackAllHeatMap', event.target, sensorsData);
             }
         }
     })
